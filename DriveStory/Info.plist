@@ -20,8 +20,12 @@
 	<string>0.1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>走行中のルートを記録して、ドライブの共有画像を作るために使います。</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>作成したドライブの1枚を、写真ライブラリへ保存するために使います。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ドライブ中に撮影した写真を自動で選び、共有画像に配置するために使います。</string>
 	<key>UILaunchScreen</key>

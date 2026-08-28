@@ -123,6 +123,25 @@ struct StoryCTA: View {
     }
 }
 
+/// 写真枠。実画像があればそれを、無ければ時刻帯の色を敷く。
+///
+/// テンプレ側はこの 1 つだけを使う。「実写が来たかどうか」を
+/// 4 レイアウトそれぞれに分岐させると必ずどれかで抜ける。
+struct StoryPhotoView: View {
+    let photo: StoryPhoto?
+
+    var body: some View {
+        if let image = photo?.image {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .clipped()
+        } else {
+            PhotoPlaceholderView(placeholder: photo?.placeholder ?? .dawn)
+        }
+    }
+}
+
 /// 実写が入る前の代替。撮影時刻帯の空の色を敷いておく。
 struct PhotoPlaceholderView: View {
     let placeholder: PhotoPlaceholder

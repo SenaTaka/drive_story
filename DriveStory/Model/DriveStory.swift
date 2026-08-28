@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+import UIKit
 
 /// Story 1 枚を描くのに必要な材料。走行ログ本体ではなく、描画用に畳んだもの。
 struct DriveStory: Identifiable {
@@ -77,8 +78,13 @@ struct StoryPhoto: Identifiable {
     let id = UUID()
     var position: Double
     var caption: String?
-    /// MVP のこの段階ではダミー。写真マッピング実装後に PHAsset 由来の画像が入る。
+    /// 実画像が無いときの代替（撮影時刻帯の空の色）。
     var placeholder: PhotoPlaceholder
+    /// 由来の `PHAsset.localIdentifier`。サンプルでは nil。
+    var assetLocalIdentifier: String? = nil
+    /// 実画像。`StoryExporter` の `ImageRenderer` は同期描画なので、
+    /// 焼く前に `StoryBuilder` が解決済みのものを入れておく必要がある。
+    var image: UIImage? = nil
 }
 
 /// 実写が入る前の代替。撮影時刻帯だけ分かっているのでその空の色で置く。

@@ -8,34 +8,72 @@
 
 /* Begin PBXBuildFile section */
 		0B3DC64F3DDEF578F667BA67 /* RouteShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6136A4186BD3D79D01C556 /* RouteShape.swift */; };
+		10FA09724B71C87A214F3563 /* StoryPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040686E0CB87E33F965CADE7 /* StoryPlayback.swift */; };
+		1D3C6A0744A55EA78E9640AC /* DriveRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C322C94BCCFC4E683718E0A /* DriveRecordStore.swift */; };
+		3A3566AFD209D092058089AE /* DriveRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD14BEA88AFBA16CE5A5BB9E /* DriveRecord.swift */; };
 		3F30B313B78D17AF02A02C61 /* StoryTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35729D2271D59290EF61718B /* StoryTheme.swift */; };
 		4D4B7A62D45748D76296B204 /* DriveStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F0E15953B304063B3EC06C /* DriveStory.swift */; };
+		55574E7A83DEF47345023EDE /* RoutePoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E4B138280FB70B82757514 /* RoutePoint.swift */; };
 		55EC8D6C470F6896A6AC816B /* RecordScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA72FEE243E03343688E7AAC /* RecordScreen.swift */; };
+		608CB1D05444529B9F500EBE /* StoryBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47817039F84EE510749C08E /* StoryBuilder.swift */; };
 		66B8FC685D31E7D7916C43C0 /* StoryParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F957588A02014052938EDC0 /* StoryParts.swift */; };
 		673899C86DA32CD7C7B437F6 /* StoryExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A97E31ECB3900176F1D2FE /* StoryExporter.swift */; };
+		6CC0A2F3D531C3BAB5BB4566 /* PhotoMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE097B0328A31D1C9C0EA012 /* PhotoMatcher.swift */; };
 		78965B84084BB83CEF604B41 /* StoryCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112A580BB804EC581A99152E /* StoryCanvas.swift */; };
+		7CD2D5171BDF02C7D1874403 /* PhotoRef.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835B4F06C0219E59F5C0D11D /* PhotoRef.swift */; };
+		903AA0A4B4BE784DF741F9C1 /* VerifyHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F3C7570F5A4634539B1CAA3 /* VerifyHarness.swift */; };
+		96B412ECEF64D8C2B23B0DD4 /* DriveRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DDFB301FC3E31E28376FA3 /* DriveRecorder.swift */; };
 		9AA154F8DFFDCF20B0A0E0A9 /* RouteOutline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6671BF22F901EE185DD2608 /* RouteOutline.swift */; };
+		A36DC3C236D60E0F2E813A18 /* PlaceNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F144472AFA39099808FF03C /* PlaceNamer.swift */; };
 		AD046F56CF2B8CB968AB0EB3 /* DriveStoryApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462D8AF60725E835D1B67584 /* DriveStoryApp.swift */; };
 		AD96109D3595A385ADA8E768 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C19E680C67E06F751F03D /* RootView.swift */; };
+		B4D8E57007F984273B2E2E43 /* RouteMask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A838069626A8E9833FFCFB /* RouteMask.swift */; };
+		C54529A40F7888633B7998E4 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF41C6D52751F2ACD9D8C76 /* LocationTracker.swift */; };
+		C95E04F123D43806D9C5A6C6 /* DriveMapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321734212B74B98F5678DFE9 /* DriveMapScreen.swift */; };
 		D029604BA50C2F0EDD1EBD38 /* StoryPreviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */; };
 		D53105BE7BDC4EE2EE9F1505 /* SampleDrives.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF110A26FD90F1AF4E9AAC58 /* SampleDrives.swift */; };
+		D74E25EA39A3C32334E7DD4C /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF5495C0ED1CACBABFA3EA3D /* ShareSheet.swift */; };
+		D8BB30122C1F3B28D4CBB40F /* PhotoImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992835204588590EB8F90167 /* PhotoImageCache.swift */; };
+		E647A173F0DBEBBDFB527D6D /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A2EE848947EFBE6CA317B /* PhotoLibraryService.swift */; };
+		F1BEE79FA4995F1310161A48 /* PhotoSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D2E9FE2408F85CEE664CCD /* PhotoSaver.swift */; };
+		FB86F042AA60EBB5A0426CC4 /* StoryPlaybackScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B867A5F827E18291EF4E9455 /* StoryPlaybackScreen.swift */; };
+		FE5F46AEE5E100976E05BB1A /* PhotoSelectScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B543FBA18052728012F43D2A /* PhotoSelectScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		013A2EE848947EFBE6CA317B /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
+		01DDFB301FC3E31E28376FA3 /* DriveRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveRecorder.swift; sourceTree = "<group>"; };
+		040686E0CB87E33F965CADE7 /* StoryPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPlayback.swift; sourceTree = "<group>"; };
 		0F957588A02014052938EDC0 /* StoryParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryParts.swift; sourceTree = "<group>"; };
 		112A580BB804EC581A99152E /* StoryCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCanvas.swift; sourceTree = "<group>"; };
 		148F9C40509850F217B2C975 /* DriveStory.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DriveStory.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14F0E15953B304063B3EC06C /* DriveStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveStory.swift; sourceTree = "<group>"; };
+		321734212B74B98F5678DFE9 /* DriveMapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveMapScreen.swift; sourceTree = "<group>"; };
 		35729D2271D59290EF61718B /* StoryTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTheme.swift; sourceTree = "<group>"; };
+		37A838069626A8E9833FFCFB /* RouteMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMask.swift; sourceTree = "<group>"; };
 		462D8AF60725E835D1B67584 /* DriveStoryApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveStoryApp.swift; sourceTree = "<group>"; };
+		53D2E9FE2408F85CEE664CCD /* PhotoSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSaver.swift; sourceTree = "<group>"; };
+		5F144472AFA39099808FF03C /* PlaceNamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceNamer.swift; sourceTree = "<group>"; };
 		607C19E680C67E06F751F03D /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		6E6136A4186BD3D79D01C556 /* RouteShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteShape.swift; sourceTree = "<group>"; };
+		7C322C94BCCFC4E683718E0A /* DriveRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveRecordStore.swift; sourceTree = "<group>"; };
+		835B4F06C0219E59F5C0D11D /* PhotoRef.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoRef.swift; sourceTree = "<group>"; };
 		865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPreviewScreen.swift; sourceTree = "<group>"; };
+		8F3C7570F5A4634539B1CAA3 /* VerifyHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyHarness.swift; sourceTree = "<group>"; };
+		992835204588590EB8F90167 /* PhotoImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoImageCache.swift; sourceTree = "<group>"; };
+		A2E4B138280FB70B82757514 /* RoutePoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutePoint.swift; sourceTree = "<group>"; };
+		AE097B0328A31D1C9C0EA012 /* PhotoMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoMatcher.swift; sourceTree = "<group>"; };
+		B543FBA18052728012F43D2A /* PhotoSelectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSelectScreen.swift; sourceTree = "<group>"; };
 		B6671BF22F901EE185DD2608 /* RouteOutline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteOutline.swift; sourceTree = "<group>"; };
+		B867A5F827E18291EF4E9455 /* StoryPlaybackScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPlaybackScreen.swift; sourceTree = "<group>"; };
 		B9A97E31ECB3900176F1D2FE /* StoryExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryExporter.swift; sourceTree = "<group>"; };
 		BF110A26FD90F1AF4E9AAC58 /* SampleDrives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDrives.swift; sourceTree = "<group>"; };
+		CD14BEA88AFBA16CE5A5BB9E /* DriveRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveRecord.swift; sourceTree = "<group>"; };
+		CF5495C0ED1CACBABFA3EA3D /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		DA72FEE243E03343688E7AAC /* RecordScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.swift; sourceTree = "<group>"; };
 		E3591999982904E908A8AA5D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EBF41C6D52751F2ACD9D8C76 /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
+		F47817039F84EE510749C08E /* StoryBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryBuilder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -47,16 +85,30 @@
 			path = Sample;
 			sourceTree = "<group>";
 		};
+		29E446755B76BB6AA1939B3B /* Playback */ = {
+			isa = PBXGroup;
+			children = (
+				040686E0CB87E33F965CADE7 /* StoryPlayback.swift */,
+			);
+			path = Playback;
+			sourceTree = "<group>";
+		};
 		40560ACA1DC9103844055E08 /* DriveStory */ = {
 			isa = PBXGroup;
 			children = (
 				E3591999982904E908A8AA5D /* Info.plist */,
 				C528FFDCBCAF1619E81B986A /* App */,
+				9214EF2001409ED1E47EE8B0 /* Compose */,
 				5224BA687995C71F18A0F62C /* Model */,
+				9F53163BE297DA5E28C955F8 /* Photos */,
+				29E446755B76BB6AA1939B3B /* Playback */,
+				96BDA815FB889D88F441B532 /* Record */,
 				6DBB6C04819EAC95F0C62F4C /* Render */,
 				0EDF69432FCA9ED19081D3C4 /* Sample */,
 				76A0FDAD74CDE225449E9EF9 /* Screens */,
+				90EDD647A470BE393B57129E /* Store */,
 				D1540D9D7FCC60E6EDF63634 /* Templates */,
+				C4E9066D04C8B8AAF7B9F354 /* Verify */,
 			);
 			path = DriveStory;
 			sourceTree = "<group>";
@@ -83,11 +135,64 @@
 		76A0FDAD74CDE225449E9EF9 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				321734212B74B98F5678DFE9 /* DriveMapScreen.swift */,
+				B543FBA18052728012F43D2A /* PhotoSelectScreen.swift */,
 				DA72FEE243E03343688E7AAC /* RecordScreen.swift */,
 				607C19E680C67E06F751F03D /* RootView.swift */,
+				CF5495C0ED1CACBABFA3EA3D /* ShareSheet.swift */,
+				B867A5F827E18291EF4E9455 /* StoryPlaybackScreen.swift */,
 				865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */,
 			);
 			path = Screens;
+			sourceTree = "<group>";
+		};
+		90EDD647A470BE393B57129E /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				CD14BEA88AFBA16CE5A5BB9E /* DriveRecord.swift */,
+				7C322C94BCCFC4E683718E0A /* DriveRecordStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		9214EF2001409ED1E47EE8B0 /* Compose */ = {
+			isa = PBXGroup;
+			children = (
+				5F144472AFA39099808FF03C /* PlaceNamer.swift */,
+				F47817039F84EE510749C08E /* StoryBuilder.swift */,
+			);
+			path = Compose;
+			sourceTree = "<group>";
+		};
+		96BDA815FB889D88F441B532 /* Record */ = {
+			isa = PBXGroup;
+			children = (
+				01DDFB301FC3E31E28376FA3 /* DriveRecorder.swift */,
+				EBF41C6D52751F2ACD9D8C76 /* LocationTracker.swift */,
+				37A838069626A8E9833FFCFB /* RouteMask.swift */,
+				A2E4B138280FB70B82757514 /* RoutePoint.swift */,
+			);
+			path = Record;
+			sourceTree = "<group>";
+		};
+		9F53163BE297DA5E28C955F8 /* Photos */ = {
+			isa = PBXGroup;
+			children = (
+				992835204588590EB8F90167 /* PhotoImageCache.swift */,
+				013A2EE848947EFBE6CA317B /* PhotoLibraryService.swift */,
+				AE097B0328A31D1C9C0EA012 /* PhotoMatcher.swift */,
+				835B4F06C0219E59F5C0D11D /* PhotoRef.swift */,
+				53D2E9FE2408F85CEE664CCD /* PhotoSaver.swift */,
+			);
+			path = Photos;
+			sourceTree = "<group>";
+		};
+		C4E9066D04C8B8AAF7B9F354 /* Verify */ = {
+			isa = PBXGroup;
+			children = (
+				8F3C7570F5A4634539B1CAA3 /* VerifyHarness.swift */,
+			);
+			path = Verify;
 			sourceTree = "<group>";
 		};
 		C528FFDCBCAF1619E81B986A /* App */ = {
@@ -178,18 +283,37 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C95E04F123D43806D9C5A6C6 /* DriveMapScreen.swift in Sources */,
+				3A3566AFD209D092058089AE /* DriveRecord.swift in Sources */,
+				1D3C6A0744A55EA78E9640AC /* DriveRecordStore.swift in Sources */,
+				96B412ECEF64D8C2B23B0DD4 /* DriveRecorder.swift in Sources */,
 				4D4B7A62D45748D76296B204 /* DriveStory.swift in Sources */,
 				AD046F56CF2B8CB968AB0EB3 /* DriveStoryApp.swift in Sources */,
+				C54529A40F7888633B7998E4 /* LocationTracker.swift in Sources */,
+				D8BB30122C1F3B28D4CBB40F /* PhotoImageCache.swift in Sources */,
+				E647A173F0DBEBBDFB527D6D /* PhotoLibraryService.swift in Sources */,
+				6CC0A2F3D531C3BAB5BB4566 /* PhotoMatcher.swift in Sources */,
+				7CD2D5171BDF02C7D1874403 /* PhotoRef.swift in Sources */,
+				F1BEE79FA4995F1310161A48 /* PhotoSaver.swift in Sources */,
+				FE5F46AEE5E100976E05BB1A /* PhotoSelectScreen.swift in Sources */,
+				A36DC3C236D60E0F2E813A18 /* PlaceNamer.swift in Sources */,
 				55EC8D6C470F6896A6AC816B /* RecordScreen.swift in Sources */,
 				AD96109D3595A385ADA8E768 /* RootView.swift in Sources */,
+				B4D8E57007F984273B2E2E43 /* RouteMask.swift in Sources */,
 				9AA154F8DFFDCF20B0A0E0A9 /* RouteOutline.swift in Sources */,
+				55574E7A83DEF47345023EDE /* RoutePoint.swift in Sources */,
 				0B3DC64F3DDEF578F667BA67 /* RouteShape.swift in Sources */,
 				D53105BE7BDC4EE2EE9F1505 /* SampleDrives.swift in Sources */,
+				D74E25EA39A3C32334E7DD4C /* ShareSheet.swift in Sources */,
+				608CB1D05444529B9F500EBE /* StoryBuilder.swift in Sources */,
 				78965B84084BB83CEF604B41 /* StoryCanvas.swift in Sources */,
 				673899C86DA32CD7C7B437F6 /* StoryExporter.swift in Sources */,
 				66B8FC685D31E7D7916C43C0 /* StoryParts.swift in Sources */,
+				10FA09724B71C87A214F3563 /* StoryPlayback.swift in Sources */,
+				FB86F042AA60EBB5A0426CC4 /* StoryPlaybackScreen.swift in Sources */,
 				D029604BA50C2F0EDD1EBD38 /* StoryPreviewScreen.swift in Sources */,
 				3F30B313B78D17AF02A02C61 /* StoryTheme.swift in Sources */,
+				903AA0A4B4BE784DF741F9C1 /* VerifyHarness.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

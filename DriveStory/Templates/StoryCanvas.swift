@@ -30,7 +30,7 @@ private struct ScenicLayout: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                PhotoPlaceholderView(placeholder: story.photos.first?.placeholder ?? .dawn)
+                StoryPhotoView(photo: story.photos.first)
                     .frame(height: 900)
                 LinearGradient(
                     colors: [.clear, theme.background.opacity(0.95)],
@@ -213,7 +213,7 @@ private struct EditorialLayout: View {
         VStack(spacing: 0) {
             ZStack {
                 if let cover = story.photos.first {
-                    PhotoPlaceholderView(placeholder: cover.placeholder)
+                    StoryPhotoView(photo: cover)
                 } else {
                     theme.panel
                 }

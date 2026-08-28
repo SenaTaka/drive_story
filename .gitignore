@@ -4,3 +4,5 @@ DerivedData/
 *.xcuserdatad
 xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
+.build/
+.verify/

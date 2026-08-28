@@ -25,3 +25,13 @@
 - 検証は **タップ不要の `DRIVE_VERIFY=1` 経路**で組む。サブエージェントはシミュレータのタップができない（NOTES 2026-08-26）ため、UI をバイパスして成果物を Documents に吐かせる形にする。
 - **EXIF 付きサンプル写真の生成手段を実地確認**: このマシンには exiftool も Pillow も piexif も無く `sips` は EXIF を扱えない → **Swift + ImageIO** で DateTimeOriginal と GPS を書いて読み戻せることを確認済み。
 - `CLAUDE.md` の「現況」が「Xcode プロジェクト未作成」のままで README・done.md と矛盾していたので実態に修正。
+
+## 2026/08/28 20:05
+- MVP のステップ 1〜10 を実装。`../car_ui` から記録層を移植（`LocationModel`→`LocationTracker`、`TrackStore`+`DriveSession`→`DriveRecorder`）。
+- 新設: `Record/`（RoutePoint・LocationTracker・DriveRecorder・RouteMask）/ `Store/`（DriveRecord・DriveRecordStore）/ `Photos/`（PhotoRef・PhotoLibraryService・PhotoMatcher・PhotoImageCache・PhotoSaver）/ `Compose/`（StoryBuilder・PlaceNamer）/ `Playback/`（StoryPlayback）/ `Screens/`（RootView・RecordScreen・PhotoSelectScreen・DriveMapScreen・StoryPlaybackScreen・ShareSheet）/ `Verify/`（VerifyHarness）。
+- 検証は **タップ不要の `DRIVE_VERIFY=1` 経路**。`scripts/verify-drive.sh` が専用シミュレータ作成→写真投入→擬似 GPS→成果物回収まで通す。EXIF 付き写真は `scripts/make-exif-photo.swift`（Swift + ImageIO。このマシンには exiftool も Pillow も無い）。
+- **未完了**: 通し検証が中断のまま。ビルドと画面表示は確認済みだが、走行〜Story 生成の一連が通った証拠（`90_result.json` と 4 枚の目視）はまだ無い。再開は `~/ios/bin/xcb zsh scripts/verify-drive.sh`。
+- ハマった点 3 つ（いずれも NOTES/スクリプトに反映済み）:
+  - `simctl privacy grant` は **install の後**でないと効かない。前に打つと初回起動で位置ダイアログが出る。
+  - ハーネスが擬似 GPS の開始前に「走行終了」と誤判定して 1 点で終わる → 最低点数と開始猶予のガードを追加。
+  - **`simctl create` 直後の端末は `addmedia` が通らない**（133 で落ちるか無出力ハング）。**shutdown→再 boot の 2 回 boot** で通る。
