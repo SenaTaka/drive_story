@@ -17,3 +17,11 @@
   editorial のタイトル切れと CTA 色誤り / night のルートが数字に重なる)。最終的に 4 テンプレとも破綻なし。
 - ハマった点: LinearGradient の `.frame(height:)` だけ旧値(1120)が残り、ZStack が 1120 になって
   bottomLeading で写真が下に寄り、上に 220px の黒帯が出た。**ビルド成功では検出できない**。目視で発見。
+
+## 2026/08/28 18:15
+- MVP の実装計画を README に記載（`404efe2`）。この会話を見ていない人（共同開発の 2 人・後日の自分）が読む場所は repo という判断。
+- 記録層は **`../car_ui`（公開済み OBD2 アプリ）から移植**する方針を確定。調査した結果、`LocationModel`(160行) / `TrackStore`(157行) / `DriveSession`(62行) は OBD 依存がほぼ無く、削る行まで特定済み（README の表）。`Units.swift` は MVP では移植しない（km 固定）。
+- 確定した設計判断: ①アプリ内は MapKit の実地図・書き出しは自前ルート線 ②動画は MVP 外（アプリ内再生アニメまで。ただし `TimelineView` を描画 View の内側に入れないことで mp4 化の道を残す）③写真は自動抽出＋トグルで外す ④永続化は SwiftData ではなく Codable + JSON（PRD §4 に追記）
+- 検証は **タップ不要の `DRIVE_VERIFY=1` 経路**で組む。サブエージェントはシミュレータのタップができない（NOTES 2026-08-26）ため、UI をバイパスして成果物を Documents に吐かせる形にする。
+- **EXIF 付きサンプル写真の生成手段を実地確認**: このマシンには exiftool も Pillow も piexif も無く `sips` は EXIF を扱えない → **Swift + ImageIO** で DateTimeOriginal と GPS を書いて読み戻せることを確認済み。
+- `CLAUDE.md` の「現況」が「Xcode プロジェクト未作成」のままで README・done.md と矛盾していたので実態に修正。
