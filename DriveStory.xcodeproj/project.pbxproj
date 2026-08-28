@@ -10,11 +10,13 @@
 		0B3DC64F3DDEF578F667BA67 /* RouteShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6136A4186BD3D79D01C556 /* RouteShape.swift */; };
 		3F30B313B78D17AF02A02C61 /* StoryTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35729D2271D59290EF61718B /* StoryTheme.swift */; };
 		4D4B7A62D45748D76296B204 /* DriveStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F0E15953B304063B3EC06C /* DriveStory.swift */; };
+		55EC8D6C470F6896A6AC816B /* RecordScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA72FEE243E03343688E7AAC /* RecordScreen.swift */; };
 		66B8FC685D31E7D7916C43C0 /* StoryParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F957588A02014052938EDC0 /* StoryParts.swift */; };
 		673899C86DA32CD7C7B437F6 /* StoryExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A97E31ECB3900176F1D2FE /* StoryExporter.swift */; };
 		78965B84084BB83CEF604B41 /* StoryCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112A580BB804EC581A99152E /* StoryCanvas.swift */; };
 		9AA154F8DFFDCF20B0A0E0A9 /* RouteOutline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6671BF22F901EE185DD2608 /* RouteOutline.swift */; };
 		AD046F56CF2B8CB968AB0EB3 /* DriveStoryApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462D8AF60725E835D1B67584 /* DriveStoryApp.swift */; };
+		AD96109D3595A385ADA8E768 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C19E680C67E06F751F03D /* RootView.swift */; };
 		D029604BA50C2F0EDD1EBD38 /* StoryPreviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */; };
 		D53105BE7BDC4EE2EE9F1505 /* SampleDrives.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF110A26FD90F1AF4E9AAC58 /* SampleDrives.swift */; };
 /* End PBXBuildFile section */
@@ -26,11 +28,13 @@
 		14F0E15953B304063B3EC06C /* DriveStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveStory.swift; sourceTree = "<group>"; };
 		35729D2271D59290EF61718B /* StoryTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTheme.swift; sourceTree = "<group>"; };
 		462D8AF60725E835D1B67584 /* DriveStoryApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveStoryApp.swift; sourceTree = "<group>"; };
+		607C19E680C67E06F751F03D /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		6E6136A4186BD3D79D01C556 /* RouteShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteShape.swift; sourceTree = "<group>"; };
 		865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPreviewScreen.swift; sourceTree = "<group>"; };
 		B6671BF22F901EE185DD2608 /* RouteOutline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteOutline.swift; sourceTree = "<group>"; };
 		B9A97E31ECB3900176F1D2FE /* StoryExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryExporter.swift; sourceTree = "<group>"; };
 		BF110A26FD90F1AF4E9AAC58 /* SampleDrives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDrives.swift; sourceTree = "<group>"; };
+		DA72FEE243E03343688E7AAC /* RecordScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.swift; sourceTree = "<group>"; };
 		E3591999982904E908A8AA5D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -79,6 +83,8 @@
 		76A0FDAD74CDE225449E9EF9 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				DA72FEE243E03343688E7AAC /* RecordScreen.swift */,
+				607C19E680C67E06F751F03D /* RootView.swift */,
 				865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */,
 			);
 			path = Screens;
@@ -174,6 +180,8 @@
 			files = (
 				4D4B7A62D45748D76296B204 /* DriveStory.swift in Sources */,
 				AD046F56CF2B8CB968AB0EB3 /* DriveStoryApp.swift in Sources */,
+				55EC8D6C470F6896A6AC816B /* RecordScreen.swift in Sources */,
+				AD96109D3595A385ADA8E768 /* RootView.swift in Sources */,
 				9AA154F8DFFDCF20B0A0E0A9 /* RouteOutline.swift in Sources */,
 				0B3DC64F3DDEF578F667BA67 /* RouteShape.swift in Sources */,
 				D53105BE7BDC4EE2EE9F1505 /* SampleDrives.swift in Sources */,

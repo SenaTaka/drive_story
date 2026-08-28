@@ -1,12 +1,12 @@
 import SwiftUI
 
 /// このアプリの最重要画面。走り終わったあと最初に見るのがここ。
+///
+/// 遷移の終着ではなくハブ。編集・地図・再生・共有はここから生える。
 struct StoryPreviewScreen: View {
-    @State private var storyIndex = 0
-    @State private var template: StoryTemplate = .scenic
-    @State private var exportNote: String?
+    let story: DriveStory
 
-    private var story: DriveStory { SampleDrives.all[storyIndex] }
+    @State private var template: StoryTemplate = .scenic
 
     var body: some View {
         VStack(spacing: 20) {
@@ -27,39 +27,15 @@ struct StoryPreviewScreen: View {
                 }
             }
             .pickerStyle(.segmented)
-
-            Picker("Drive", selection: $storyIndex) {
-                ForEach(SampleDrives.all.indices, id: \.self) { index in
-                    Text(SampleDrives.all[index].title.replacingOccurrences(of: "\n", with: " "))
-                        .tag(index)
-                }
-            }
-            .pickerStyle(.menu)
-
-            Button("PNG を書き出す(検証用)") {
-                let urls = StoryExporter.dumpAll(SampleDrives.all)
-                exportNote = "\(urls.count) 枚"
-            }
-            .buttonStyle(.borderedProminent)
-
-            if let exportNote {
-                Text(exportNote)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
         }
         .padding()
         .background(Color(white: 0.08))
-        .preferredColorScheme(.dark)
-        .task {
-            // 検証用: STORY_DUMP=1 で起動すると全テンプレを Documents へ書き出す。
-            // 「ビルド成功」だけを完了根拠にしないための目視確認経路。
-            guard ProcessInfo.processInfo.environment["STORY_DUMP"] == "1" else { return }
-            StoryExporter.dumpAll(SampleDrives.all)
-        }
+        .navigationTitle(story.title.replacingOccurrences(of: "\n", with: " "))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
-    StoryPreviewScreen()
+    NavigationStack { StoryPreviewScreen(story: SampleDrives.hakone) }
+        .preferredColorScheme(.dark)
 }
