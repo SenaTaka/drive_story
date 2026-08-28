@@ -27,12 +27,26 @@ Relive（アクティビティ → 動画）や Strava の Stats Stickers は隣
 
 ## 設計上の決定
 
-- **地図タイルを使わず、ルートを自前で描く。** タイル画像を焼いて SNS に配ると帰属表示・再配布の規約に触れます。
+- **書き出す画像に地図タイルを焼かない。** タイル画像を SNS に配ると帰属表示・再配布の規約に触れます。
   自前描画なら規約の問題が消え、同時に生活道路や店名が写らないのでプライバシーも解決します。
+  一方で**アプリの中で見るだけの画面は MapKit の実地図**を使います。配らないなら制約がないからです。
 - **出発・到着の半径 500m を既定で伏せる。** 線の端から自宅が推定できないようにするためです。
-- **バックグラウンド位置情報は Always を使わない。** When In Use + Live Activity で足ります。
+  距離と所要時間はマスク前の値を出します。伏せるのは場所であって、走った事実ではありません。
+- **記録した事実と絵の材料を分ける。** `DriveRecord` が前者、`DriveStory` が後者で、後者は保存しません。
+  混ぜると、写真の選び直しやマスク半径の変更のたびに保存データが壊れます。
+- **写真は自動で拾ってから外す。** 全部を手で選ばせると「40 枚をスクロールして選べずに閉じる」に戻ります。
+  経路上の位置は**点数比ではなく経路長比**で出します（レンダラがそのパラメータで描いているため）。
+  並び順は経路上の位置ではなく撮影時刻です。周回ルートでは位置が前後します。
+- **バックグラウンド位置情報は Always を使わない。** 審査コストとバッテリーが割に合いません（前景のみ。Live Activity は未実装）。
 - **テンプレごとに画面を作らない。** 1 つのレンダラ + テーマ定義で 4 種を出し分けます。
 - **Night / Editorial は写真 0 枚でも成立させる。** 写真が少ない日に生成が破綻しないための保険です。
+- **永続化は SwiftData ではなく Codable + JSON。** 座標を含む点列は `@Model` に素直に載らず、
+  結局 Codable と同じ手間にマイグレーション責務が乗るだけです（`doc/PRD_MVP.md` §4）。
+  差し替えたくなったときのために `protocol DriveRecordStoring` で境界を切ってあります。
+- **再生アニメーションは自前ルート描画の上でやり、時間源は外から注入する。**
+  `MKMapView` は `ImageRenderer` で焼けないので、地図の上でやると動画化の道が閉じます。
+  `TimelineView` を描画 View の内側に置かない限り、同じ描画をフレーム単位で焼いて動画にできます。
+- **動画書き出しは MVP に入れない。** アプリの中で再生するところまでです。
 
 ## 現況
 
@@ -77,47 +91,65 @@ car_ui に無くこちらに既にあるもの: 自前の緯度経度投影と D
 
 ステップ 1〜6 で「シミュレータで一連が動く」に到達します。7 以降は上積みです。
 
-| # | やること | 完了条件 | 状態 |
+| # | やること | 完了条件 | 実装 |
 |---|---|---|---|
-| 1 | `StoryPreviewScreen` の入力化（`init(story:)` 化、`RootView` 新設） | サンプルの表示とテンプレ切替が今までどおり動く（退行なし） | 実装済み |
-| 2 | 記録層の移植（`RoutePoint` / `LocationTracker` / `DriveRecorder` / `RecordScreen`） | 擬似 GPS を流して経過時間と距離が増える | 実装済み |
-| 3 | 永続化 + 履歴（`DriveRecord` / `DriveRecordStore` / 記録中の退避） | 終了 → アプリを kill → 再起動で履歴に 1 件残る。記録中に kill しても復帰する | 実装済み |
-| 4 | マスク + Outline 接続 + `StoryBuilder`（写真なし版） | 終了直後に Story プレビューが**実走行の形**で開く。始点 500m が線から消えている | 実装済み |
-| 5 | 写真マッピング（`PhotoLibraryService` / `PhotoMatcher` / `PhotoImageCache`） | 走行時刻レンジの写真を投入すると写真枠に実写が出て、ピンが経路上に載る | 実装済み |
-| 6 | 共有 + 保存（`ShareSheet`） | 共有シートが開き、1080×1920 の PNG が写真ライブラリに入る。**ここで骨格が通る** | 実装済み |
-| 7 | 写真の編集 UI（トグル + PHPicker 追加） | チェックを外すとピンと写真が消え、再起動後も維持される | 実装済み |
-| 8 | 逆ジオコーディング + タイトル生成 | タイトルが実地名になり、オフライン時もフォールバックして落ちない | 実装済み |
-| 9 | アプリ内地図（`DriveMapScreen`） | 実地図に軌跡と写真ピンが出て、ギャップ区間で線が切れている | 実装済み |
-| 10 | 再生アニメーション | ルートが伸びて写真が撮影時刻順に出る | 実装済み |
+| 1 | `StoryPreviewScreen` の入力化（`init(story:)` 化、`RootView` 新設） | サンプルの表示とテンプレ切替が今までどおり動く（退行なし） | 済 |
+| 2 | 記録層の移植（`RoutePoint` / `LocationTracker` / `DriveRecorder` / `RecordScreen`） | 擬似 GPS を流して経過時間と距離が増える | 済 |
+| 3 | 永続化 + 履歴（`DriveRecord` / `DriveRecordStore` / 記録中の退避） | 終了 → アプリを kill → 再起動で履歴に 1 件残る。記録中に kill しても復帰する | 済 |
+| 4 | マスク + Outline 接続 + `StoryBuilder`（写真なし版） | 終了直後に Story プレビューが**実走行の形**で開く。始点 500m が線から消えている | 済 |
+| 5 | 写真マッピング（`PhotoLibraryService` / `PhotoMatcher` / `PhotoImageCache`） | 走行時刻レンジの写真を投入すると写真枠に実写が出て、ピンが経路上に載る | 済 |
+| 6 | 共有 + 保存（`ShareSheet`） | 共有シートが開き、1080×1920 の PNG が写真ライブラリに入る。**ここで骨格が通る** | 済 |
+| 7 | 写真の編集 UI（トグル + PHPicker 追加） | チェックを外すとピンと写真が消え、再起動後も維持される | 済 |
+| 8 | 逆ジオコーディング + タイトル生成 | タイトルが実地名になり、オフライン時もフォールバックして落ちない | 済 |
+| 9 | アプリ内地図（`DriveMapScreen`） | 実地図に軌跡と写真ピンが出て、ギャップ区間で線が切れている | 済 |
+| 10 | 再生アニメーション | ルートが伸びて写真が撮影時刻順に出る | 済 |
 
-### 設計の決めごと
-
-- **型の役割を分ける。** `DriveRecord`（新規・永続）が走行の事実、`DriveStory`（既存・使い捨て）が絵の材料。後者は `StoryBuilder` が毎回組み立て直します。ここを混ぜると破綻します。
-- **永続化は SwiftData ではなく Codable + JSON。** 座標を含む点列は `@Model` に素直に載らず、結局 Codable と同じ手間にマイグレーション責務が乗るだけです。car_ui に動作実績のある atomic write がそのまま使えます。差し替えたくなったときのために `protocol` で切っておきます。
-- **地図は使い分ける。** アプリ内で見る画面は MapKit の実地図。**SNS へ書き出す画像は自前ルート描画のまま**です（タイルを焼くと規約とプライバシーの両方に触れる）。
-- **写真は自動抽出してから外す。** 走行時刻レンジ + 位置で拾い、チェックで外せるようにします。位置情報のない写真は撮影時刻の補間で救い、マスク区間に落ちた写真は無条件で除外します（自宅で撮った写真が出るのが一番まずい）。
-- **写真の位置は経路長比で出す。** `RouteOutline.point(atFraction:)` が経路長パラメータなので、点数比で計算するとピンがずれます。
-- **並び順は撮影時刻。** 周回ルートでは経路上の位置が前後するので、時刻が真です。
-- **距離・所要時間はマスク前の値を出す。** マスクは公開地点を伏せるためのもので、走った事実を偽る必要はありません。
-- **アニメーションは自前ルート描画の上でやる。** `MKMapView` は `ImageRenderer` で焼けないので、地図の上でやると動画化の道が閉じます。時間 → 進捗の変換を純関数に切り出し、`TimelineView` を描画 View の内側に入れないでおけば、後日フレームを焼いて mp4 にできます。
-- **動画書き出しは MVP に入れない。** アプリ内で再生するところまでです。
+「実装」列はコードが入ってビルドが通ったという意味です。**完了条件を満たしたかの確認はこれから**で、
+`scripts/verify-drive.sh` が中断したままになっています（下記「シミュレータでの検証」）。
 
 ## 構成
 
+記録した事実（`DriveRecord`）と、絵の材料（`DriveStory`）を分けています。
+後者は保存せず、`StoryBuilder` が毎回組み立て直す使い捨ての構造体です。
+ここを混ぜると、写真の選び直しやマスク半径の変更のたびに保存データが壊れます。
+
 ```
 DriveStory/
-  Model/DriveStory.swift        Story 1 枚分の材料（走行ログ本体ではなく描画用に畳んだもの）
-  Render/RouteOutline.swift     緯度経度 → Douglas-Peucker で簡略化 → 縦横比を保って単位正方形へ
-  Render/RouteShape.swift       ルートの描画。START/GOAL と写真ピンを経路上の位置に置く
-  Render/StoryTheme.swift       4 テンプレの配色とタイポの定義
-  Render/StoryExporter.swift    ImageRenderer で 1080×1920 の PNG に焼く
-  Templates/StoryCanvas.swift   4 テンプレのレイアウト
-  Templates/StoryParts.swift    共通部品（統計・タグ・星・CTA）
-  Screens/StoryPreviewScreen.swift  最重要画面
-  Sample/SampleDrives.swift     検証用のダミー走行データ
-doc/     COMPETITORS.md（競合調査）/ PRD_MVP.md（MVP 要件）
-store/   VALUE_SHEET.md（価値訴求シート・仮説）
-vision/  テンプレ 4 種の決定稿ビジュアル
+  Record/     RoutePoint          走行軌跡の 1 点（記録用の生データ）
+              LocationTracker     CLLocationManager。精度フィルタと GPS 品質だけを持つ
+              DriveRecorder       走行 1 回の記録。1Hz 間引き・中断時の退避と復元
+              RouteMask           出発・到着の半径 500m を落とす
+  Store/      DriveRecord         走行の事実。永続する唯一の単位
+              DriveRecordStore    Application Support の JSON。履歴 100 件まで
+  Photos/     PhotoRef            Story に載せる候補 1 枚（実画像は持たない）
+              PhotoLibraryService PhotoKit への唯一の窓口
+              PhotoMatcher        走行時刻・位置と写真の突き合わせ
+              PhotoImageCache     焼く前に実画像を揃えるための層
+              PhotoSaver          完成した 1 枚を写真ライブラリへ
+  Compose/    StoryBuilder        DriveRecord → DriveStory。記録層と描画層の唯一の接点
+              PlaceNamer          マスク後の点を逆ジオコーディングして地名を決める
+  Model/      DriveStory          Story 1 枚分の材料（描画用に畳んだもの）
+  Render/     RouteOutline        緯度経度 → Douglas-Peucker → 縦横比を保って単位正方形へ
+              RouteShape          ルートの描画。START/GOAL と写真ピンを経路上に置く
+              StoryTheme          4 テンプレの配色とタイポ
+              StoryExporter       ImageRenderer で 1080×1920 の PNG に焼く
+  Templates/  StoryCanvas         4 テンプレのレイアウト
+              StoryParts          共通部品（統計・タグ・星・CTA・写真枠）
+  Playback/   StoryPlayback       時間 → コマ（純関数）と、ルートが伸びる描画層
+  Screens/    RootView            画面遷移とデバッグ経路の集約点
+              RecordScreen        ホーム。走行の開始・終了と履歴
+              StoryPreviewScreen  最重要画面。編集・地図・再生・共有のハブ
+              PhotoSelectScreen   自動で拾った写真を外す
+              DriveMapScreen      アプリ内の実地図（MapKit）
+              StoryPlaybackScreen 再生
+              ShareSheet          標準の共有シート
+  Verify/     VerifyHarness       DRIVE_VERIFY=1 の通し実行（UI をバイパスする）
+  Sample/     SampleDrives        レンダラ検証用のダミー走行データ
+doc/      COMPETITORS.md（競合調査）/ PRD_MVP.md（MVP 要件）
+store/    VALUE_SHEET.md（価値訴求シート・仮説）
+vision/   テンプレ 4 種の決定稿ビジュアル
+scripts/  verify-drive.sh（通し検証）/ seed-photos.sh / make-exif-photo.swift
+          read-exif.swift / waypoints/（擬似 GPS のルート）
 ```
 
 ## ビルド
@@ -152,13 +184,14 @@ SIMCTL_CHILD_STORY_DUMP=1 xcrun simctl launch <device-id> com.senatakasawa.drive
 open "$(xcrun simctl get_app_container <device-id> com.senatakasawa.drivestory data)/Documents"
 ```
 
-### 一連の流れを通しで確認する（実装後）
+### 一連の流れを通しで確認する
 
 `scripts/verify-drive.sh` が、専用シミュレータの作成から擬似走行・写真投入・成果物の回収までを通しで回します。
 
 - **擬似 GPS**: `xcrun simctl location <udid> start --speed=<m/s> --distance=<m> -` にウェイポイントを流します（`scripts/waypoints/`）。**launch 前に `location set` で START に置く**こと — 既定の Cupertino のままだと 1 点目が太平洋を跨いで距離が壊れます。
 - **EXIF 付きサンプル写真**: このマシンには exiftool も Pillow もなく、`sips` は EXIF を扱えません。`scripts/make-exif-photo.swift`（Swift + ImageIO）で撮影時刻と GPS を書いた JPEG を作り、`xcrun simctl addmedia` で投入します。`OffsetTimeOriginal` を必ず入れてください（無いとタイムゾーン解釈が端末依存になり、時刻レンジ一致が静かにずれます）。**マスク圏内・位置違い・時刻違い・GPS なしを混ぜた 7 枚**を投入します。全部通ると「マッチャが素通ししているだけ」を検出できません。
-- **権限**: `xcrun simctl privacy <udid> grant location|photos|photos-add <bundle>` を、**アプリを一度も起動しないうちに**実行します。一度でも位置プロンプトを出した端末では iOS 26 で grant が効かず、ダイアログが出続けます。だから専用シミュレータを毎回作って捨てます。
+- **権限**: `xcrun simctl privacy <udid> grant location|photos|photos-add <bundle>` を、**install の後・アプリを一度も起動しないうちに**実行します。install より前だと効きません（TCC のエントリが install で流れます）。一度でも位置プロンプトを出した端末では iOS 26 で grant が効かなくなるので、専用シミュレータを毎回作って捨てます。
+- **シミュレータは 2 回 boot する**: `simctl create` 直後の端末は写真まわりのサービスが立ち上がっておらず、`addmedia` が `LaunchdSimError 133` で落ちるか、**無出力でハングします**。一度 `shutdown` して boot し直すと通ります。
 - **タップ不要**: `DRIVE_VERIFY=1` で起動すると、記録開始 → 走行 → 終了 → 写真マッピング → Story 生成までを画面操作なしで実行し、`Documents/verify/<runid>/` に走行 JSON・写真の採否理由・Story 4 枚・アニメのフレーム連番を書き出します。**ハーネスは UI 層だけをバイパスし、本番と同じサービス層を呼びます** — ハーネス専用のロジックを書いた瞬間、この検証は何も担保しなくなります。
 
 回収したら **Story 4 枚とアニメのコンタクトシートは必ず開いて見てください。** 機械判定の pass は「真っ黒/白紙ではない」ことしか保証しません。
