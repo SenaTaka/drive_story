@@ -62,7 +62,8 @@
 - `Drive.routePoints[]` は記録用(lat/lon/timestamp/speed)。**Story 用は別途 Douglas-Peucker で簡略化した Polyline を保持**(元案 §20 と同じ判断)
 - `DrivePhoto.routePosition` は 0.0〜1.0 の正規化位置(描画側が座標を持たないで済む)
 - `Drive.maskedRadius`(既定 500m)を Drive ごとに保存 — 生成時ではなく記録時に決める(あとから公開範囲を変えても一貫する)
-- MVP はローカル(SwiftData)完結。共有 URL のためだけに最小の公開ペイロードを送る
+- MVP はローカル完結。共有 URL のためだけに最小の公開ペイロードを送る
+- **永続化は SwiftData ではなく Codable + JSON を採る**(2026-08-28 決定) — `routePoints` が `CLLocationCoordinate2D` を含み `@Model` に素直に載らず、結局 Codable と同じ手間にマイグレーション責務が乗るだけのため。`../car_ui` に動作実績のある atomic write をそのまま使う。差し替え余地は `protocol` で残す
 
 ## 5. テンプレ 4 種(`vision/` に決定稿の見た目あり)
 
