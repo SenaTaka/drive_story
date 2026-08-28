@@ -32,6 +32,26 @@ struct RecordScreen: View {
                 Text("記録")
             }
 
+            Section {
+                Toggle("自動で記録する", isOn: Binding(
+                    get: { recorder.isAutoDetectEnabled },
+                    set: { recorder.setAutoDetect($0) }
+                ))
+                if recorder.isAutoDetectEnabled {
+                    LabeledContent("状態") {
+                        Text(detectorLabel)
+                            .foregroundStyle(.secondary)
+                    }
+                    .font(.footnote)
+                }
+            } header: {
+                Text("自動記録")
+            } footer: {
+                Text(recorder.detector.isMotionAvailable
+                     ? "車で走り出したことを見つけて、開いていなくても記録を始めます。位置情報の「常に許可」が要ります。電池を使うので、使わないときは切ってください。"
+                     : "この端末では車の動きを直接は見分けられないので、速度だけで判定します。位置情報の「常に許可」が要ります。")
+            }
+
             if !store.records.isEmpty {
                 Section {
                     ForEach(store.records) { record in
@@ -60,6 +80,25 @@ struct RecordScreen: View {
             }
         }
         .navigationTitle("Drive Story")
+        .onAppear { recorder.restoreAutoDetect() }
+        .onChange(of: recorder.finishedByDetector?.id) { _, _ in
+            // 自動で締まった記録を保存して、そのまま Story へ連れていく。
+            guard let record = recorder.finishedByDetector else { return }
+            recorder.finishedByDetector = nil
+            store.save(record)
+            path.append(.record(record.id))
+            attachPhotosAndTitle(to: record)
+        }
+    }
+
+    private var detectorLabel: String {
+        switch recorder.detector.state {
+        case .off: return "切"
+        case .waiting: return "走り出しを待っています"
+        case .maybeDriving: return "走り出したかもしれません"
+        case .driving: return "記録中"
+        case .maybeStopped: return "止まったかもしれません"
+        }
     }
 
     /// 走行を締めて保存し、そのまま Story プレビューへ。
@@ -69,20 +108,24 @@ struct RecordScreen: View {
         guard let record = recorder.stop() else { return }
         store.save(record)
         path.append(.record(record.id))
+        attachPhotosAndTitle(to: record)
+    }
 
-        // 写真の突き合わせは待たせない。先に絵を出して、揃った順に差し込む。
+    /// 写真と地名は待たせない。先に絵を出して、揃った順に差し込む。
+    private func attachPhotosAndTitle(to record: DriveRecord) {
         Task {
             var updated = record
             await PhotoLibraryService.requestAuthorization()
-            guard PhotoLibraryService.isAuthorized else { return }
-            updated.selectedPhotos = PhotoMatcher.match(
-                record: updated,
-                assets: PhotoLibraryService.assets(onDayOf: updated)
-            )
-            store.save(updated)
-            await cache.preload(updated.includedPhotos)
+            if PhotoLibraryService.isAuthorized {
+                updated.selectedPhotos = PhotoMatcher.match(
+                    record: updated,
+                    assets: PhotoLibraryService.assets(onDayOf: updated)
+                )
+                store.save(updated)
+                await cache.preload(updated.includedPhotos)
+            }
 
-            // 地名は待たせない。取れたら差し替える（オフラインなら DRIVE のまま）。
+            // 地名が取れなければ DRIVE のまま。オフラインでも Story は作れる。
             let naming = await PlaceNamer.resolve(
                 points: updated.points, maskedRadius: updated.maskedRadius
             )

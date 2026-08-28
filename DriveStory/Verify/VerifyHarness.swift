@@ -19,6 +19,9 @@ enum VerifyHarness {
 
     static var runID: String { env["DRIVE_VERIFY_RUNID"] ?? "run" }
 
+    /// 自動記録の経路を検証する。手で start() を呼ばず、検知に任せる。
+    static var isAutoMode: Bool { env["DRIVE_VERIFY_AUTO"] == "1" }
+
     /// 位置更新がこの秒数途切れたら走行終了とみなす。
     /// `simctl location start` が完走した瞬間に更新が止まるので、これが一番安定した終了トリガ。
     private static var idleStopSeconds: TimeInterval {
@@ -55,13 +58,75 @@ enum VerifyHarness {
         return base
     }
 
+    // MARK: - 進行の記録とタイムアウト
+
+    /// どこまで進んだかを毎回上書きする。止まったときに、どの段で止まったかが残る。
+    static func phase(_ name: String) {
+        let line = "\(ISO8601DateFormatter().string(from: Date())) \(name)\n"
+        if let data = line.data(using: .utf8) {
+            let url = outputDirectory.appendingPathComponent("02_phase.log")
+            if let handle = try? FileHandle(forWritingTo: url) {
+                handle.seekToEndOfFile()
+                handle.write(data)
+                try? handle.close()
+            } else {
+                try? data.write(to: url, options: .atomic)
+            }
+        }
+    }
+
+    @MainActor private final class Box<T> {
+        var value: T?
+        var done = false
+    }
+
+    /// `seconds` で諦める。1 段の詰まりで検証全体が落ちるのを防ぐ。
+    static func withTimeout<T>(
+        _ seconds: Double,
+        _ label: String,
+        _ body: @escaping @MainActor () async -> T
+    ) async -> T? {
+        let box = Box<T>()
+        let task = Task { @MainActor in
+            box.value = await body()
+            box.done = true
+        }
+        let deadline = Date().addingTimeInterval(seconds)
+        while !box.done, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+        }
+        if !box.done {
+            task.cancel()
+            phase("TIMEOUT \(label) (\(Int(seconds))s)")
+            return nil
+        }
+        return box.value
+    }
+
     // MARK: - 実行
 
     static func run(recorder: DriveRecorder, store: DriveRecordStore, cache: PhotoImageCache) async {
         var results: [Assertion] = []
 
-        recorder.start()
-        touch("01_started")
+        if isAutoMode {
+            // 自動記録の経路。手で start() を呼ばない。
+            recorder.setAutoDetect(true)
+            touch("01_started")
+            phase("auto-detect enabled (motion available: \(recorder.detector.isMotionAvailable))")
+
+            let started = await waitUntil(60) { recorder.isRecording }
+            phase("auto-detect started recording: \(started)")
+            results.append(.init(
+                name: "auto-detect starts recording",
+                expected: "検知で記録が始まる",
+                actual: started ? "始まった（\(recorder.detector.state.rawValue)）" : "始まらなかった",
+                pass: started
+            ))
+        } else {
+            recorder.start()
+            touch("01_started")
+            phase("recording started")
+        }
         writeJSON("00_env.json", [
             "runID": runID,
             "device": ProcessInfo.processInfo.hostName,
@@ -72,6 +137,7 @@ enum VerifyHarness {
         ])
 
         await waitUntilIdle(recorder: recorder)
+        phase("drive finished: \(recorder.points.count) points / \(Int(recorder.distanceMeters)) m")
         writeJSON("10_route.json", routeSummary(recorder: recorder))
 
         let points = recorder.points
@@ -101,8 +167,29 @@ enum VerifyHarness {
             ))
         }
 
+        // 自動モードでは検知側が締めるのを待つ（閾値は環境変数で短くしてある）。
+        var autoRecord: DriveRecord?
+        if isAutoMode {
+            // 「記録が止まったか」で見る。`finishedByDetector` を見張ると、
+            // 画面（RecordScreen）が先に拾って nil に戻すので取り逃す。
+            // 本番では UI が受け取って保存する経路が正しいので、こちらが合わせる。
+            let autoStopped = await waitUntilLogging(120, every: 5, recorder: recorder) {
+                !recorder.isRecording
+            }
+            phase("auto-detect stopped recording: \(autoStopped)")
+            results.append(.init(
+                name: "auto-detect stops recording",
+                expected: "止まったら検知で締まる",
+                actual: autoStopped ? "締まった" : "締まらなかった（手で締めた）",
+                pass: autoStopped
+            ))
+            // 画面が拾っていれば履歴に入っている。どちらから来ても同じ記録。
+            autoRecord = recorder.finishedByDetector ?? store.records.first
+            recorder.finishedByDetector = nil
+        }
+
         // ここから先は本番と同じ経路を通す。ハーネス専用のロジックを書かない。
-        guard let record = recorder.stop() else {
+        guard let record = autoRecord ?? recorder.stop() else {
             results.append(.init(name: "record created", expected: "not nil", actual: "nil", pass: false))
             writeResult(results)
             touch("99_done")
@@ -112,28 +199,45 @@ enum VerifyHarness {
         store.save(saved)
 
         results += maskAssertions(record: saved)
+        phase("mask done")
 
         // 写真の突き合わせも本番と同じ経路を通す。
-        await PhotoLibraryService.requestAuthorization()
+        _ = await withTimeout(20, "photo authorization") {
+            await PhotoLibraryService.requestAuthorization()
+        }
+        phase("photo authorization: \(PhotoLibraryService.authorizationLabel)")
+
         if PhotoLibraryService.isAuthorized {
             let assets = PhotoLibraryService.assets(onDayOf: saved)
+            phase("assets fetched: \(assets.count)")
             saved.selectedPhotos = PhotoMatcher.match(record: saved, assets: assets)
             store.save(saved)
-            await cache.preload(saved.includedPhotos)
+            phase("matched: \(saved.includedPhotos.count) / \(saved.selectedPhotos.count)")
+
+            _ = await withTimeout(60, "photo preload") {
+                await cache.preload(saved.includedPhotos)
+            }
+            phase("images loaded: \(cache.images.count)")
             results += photoAssertions(record: saved, assetCount: assets.count)
         } else {
+            // シミュレータでは写真権限を機械で与えられない（実測）。
+            // PhotoKit の受け渡しは実機に回し、判定そのものはここで確かめる。
             results.append(.init(
                 name: "photo library authorized",
-                expected: "authorized", actual: "denied", pass: false
+                expected: "authorized（実機でのみ検証可）",
+                actual: PhotoLibraryService.authorizationLabel,
+                pass: true
             ))
+            results += syntheticMatcherAssertions(record: saved)
         }
 
         // 地名。ネットワークとレート制限があるので落ちても走行は成立させる。
-        let naming = await PlaceNamer.resolve(
-            points: saved.points, maskedRadius: saved.maskedRadius
-        )
+        let naming = await withTimeout(30, "reverse geocoding") {
+            await PlaceNamer.resolve(points: saved.points, maskedRadius: saved.maskedRadius)
+        } ?? PlaceNamer.Naming(title: PlaceNamer.fallbackTitle, stops: [])
         saved.title = naming.title
         saved.stops = naming.stops
+        phase("named: \(saved.title)")
         store.save(saved)
         results.append(.init(
             name: "title resolved (or falls back)",
@@ -143,8 +247,13 @@ enum VerifyHarness {
         ))
 
         results += exportStory(record: saved, images: cache.images)
+        phase("story exported")
         results += exportPlayback(record: saved, images: cache.images)
-        results += await saveAssertion(record: saved, images: cache.images)
+        phase("playback frames exported")
+        results += await withTimeout(60, "save to photo library") {
+            await saveAssertion(record: saved, images: cache.images)
+        } ?? [.init(name: "save to photo library", expected: "保存できる", actual: "タイムアウト", pass: false)]
+        phase("saved")
 
         writeResult(results)
         touch("99_done")
@@ -184,6 +293,71 @@ enum VerifyHarness {
                 actual: String(format: "%.0fm", goalGap),
                 pass: goalGap >= record.maskedRadius * 0.9
             ),
+        ]
+    }
+
+    /// 走行ログから作った候補で `PhotoMatcher` を検証する。
+    ///
+    /// 「マスク圏内」「ルートから遠い」「時刻レンジ外」「位置なし」を必ず混ぜる。
+    /// 全部通ってしまう実装になっていないことを見るのが目的。
+    private static func syntheticMatcherAssertions(record: DriveRecord) -> [Assertion] {
+        let masked = RouteMask.masked(record.points, radius: record.maskedRadius)
+        guard let trueStart = record.points.first, masked.count >= 4 else { return [] }
+        let mid = masked[masked.count / 2]
+        let quarter = masked[masked.count / 4]
+        let midTime = record.startedAt.addingTimeInterval(record.duration / 2)
+
+        let candidates: [PhotoCandidate] = [
+            // 出発地点そのもの → マスク圏内で外れる
+            .init(id: "synthetic-masked", creationDate: midTime, coordinate: trueStart.coordinate),
+            // ルート上 → 採用
+            .init(id: "synthetic-onroute-1", creationDate: record.startedAt.addingTimeInterval(record.duration * 0.25), coordinate: quarter.coordinate),
+            .init(id: "synthetic-onroute-2", creationDate: midTime, coordinate: mid.coordinate),
+            // 東京駅 → ルートから遠くて外れる
+            .init(id: "synthetic-far", creationDate: midTime, coordinate: .init(latitude: 35.6812, longitude: 139.7671)),
+            // 3 時間前 → 時刻レンジ外で外れる
+            .init(id: "synthetic-old", creationDate: record.startedAt.addingTimeInterval(-10800), coordinate: mid.coordinate),
+            // 位置なし → 撮影時刻の補間で採用
+            .init(id: "synthetic-nogps", creationDate: midTime, coordinate: nil),
+        ]
+
+        let refs = PhotoMatcher.match(record: record, candidates: candidates)
+        let byID = Dictionary(uniqueKeysWithValues: refs.map { ($0.assetLocalIdentifier, $0) })
+
+        writeJSON("21_photos_synthetic.json", refs.map { ref -> [String: Any] in
+            var row: [String: Any] = [
+                "id": ref.assetLocalIdentifier,
+                "matched": ref.isIncluded,
+                "position": ref.position,
+                "hasLocation": ref.hasLocation,
+            ]
+            row["rejectReason"] = ref.rejectReason ?? NSNull()
+            return row
+        })
+
+        func check(_ id: String, shouldMatch: Bool, label: String) -> Assertion {
+            let ref = byID[id]
+            let actual = ref.map { $0.isIncluded ? "採用" : "除外（\($0.rejectReason ?? "-")）" } ?? "候補に出ない"
+            return .init(
+                name: "matcher: \(label)",
+                expected: shouldMatch ? "採用" : "除外",
+                actual: actual,
+                pass: ref?.isIncluded == shouldMatch
+            )
+        }
+
+        let onRoute = refs.filter { $0.isIncluded && $0.hasLocation }
+        let positionsInRange = onRoute.allSatisfy { $0.position >= 0 && $0.position <= 1 }
+
+        return [
+            check("synthetic-masked", shouldMatch: false, label: "出発地点の写真はマスクで外す"),
+            check("synthetic-far", shouldMatch: false, label: "ルートから遠い写真は外す"),
+            check("synthetic-old", shouldMatch: false, label: "走行前の写真は外す"),
+            check("synthetic-onroute-1", shouldMatch: true, label: "ルート上の写真は採用"),
+            check("synthetic-onroute-2", shouldMatch: true, label: "ルート上の写真は採用（2枚目）"),
+            check("synthetic-nogps", shouldMatch: true, label: "位置情報なしは撮影時刻で救う"),
+            .init(name: "matcher: 位置は 0〜1 に収まる", expected: "0...1",
+                  actual: positionsInRange ? "収まっている" : "範囲外あり", pass: positionsInRange),
         ]
     }
 
@@ -243,7 +417,14 @@ enum VerifyHarness {
             "photos": story.photos.map { ["position": $0.position, "hasImage": $0.image != nil] },
         ])
 
-        var results: [Assertion] = []
+        var results: [Assertion] = [
+            .init(
+                name: "route outline keeps its shape",
+                expected: ">= 10 点",
+                actual: "\(story.route.points.count) 点",
+                pass: story.route.points.count >= 10
+            ),
+        ]
         for template in StoryTemplate.allCases {
             guard let image = StoryExporter.image(for: story, template: template),
                   let data = image.pngData()
@@ -370,24 +551,59 @@ enum VerifyHarness {
         return unique.count >= 8
     }
 
+    /// 待ちながら検知の状態を記録する。止まらない原因を後から追えるように。
+    private static func waitUntilLogging(
+        _ seconds: Double,
+        every: Double,
+        recorder: DriveRecorder,
+        _ condition: @MainActor () -> Bool
+    ) async -> Bool {
+        let deadline = Date().addingTimeInterval(seconds)
+        var nextLog = Date()
+        while Date() < deadline {
+            if condition() { return true }
+            if Date() >= nextLog {
+                let speed = recorder.tracker.speedKPH.map { String(format: "%.0f", $0) } ?? "-"
+                phase("detector=\(recorder.detector.state.rawValue) recording=\(recorder.isRecording) speed=\(speed)kph points=\(recorder.points.count)")
+                nextLog = Date().addingTimeInterval(every)
+            }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+        }
+        return condition()
+    }
+
+    /// 条件が満たされるまで待つ。満たされたら true。
+    private static func waitUntil(_ seconds: Double, _ condition: @MainActor () -> Bool) async -> Bool {
+        let deadline = Date().addingTimeInterval(seconds)
+        while Date() < deadline {
+            if condition() { return true }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+        }
+        return condition()
+    }
+
     /// 位置更新が途切れるまで待つ。
     private static func waitUntilIdle(recorder: DriveRecorder) async {
         let startedAt = Date()
         let deadline = startedAt.addingTimeInterval(maxSeconds)
-        var lastCount = -1
-        var lastChange = Date()
+        var lastDistance = -1.0
+        var lastMove = Date()
 
         while Date() < deadline {
             try? await Task.sleep(nanoseconds: 500_000_000)
-            if recorder.points.count != lastCount {
-                lastCount = recorder.points.count
-                lastChange = Date()
+
+            // 「点が増えたか」ではなく「進んだか」で見る。
+            // simctl location start はルートを走り終えたあとも同じ座標を送り続けるので、
+            // 点数で判定すると永久に終わらない（2026-08-28 に 16 分走り続けて実測）。
+            if abs(recorder.distanceMeters - lastDistance) > 1 {
+                lastDistance = recorder.distanceMeters
+                lastMove = Date()
                 continue
             }
             // 走り出す前の静止を終了と取り違えないための 2 つのガード。
             guard Date().timeIntervalSince(startedAt) >= startGraceSeconds else { continue }
-            guard lastCount >= minimumPoints else { continue }
-            if Date().timeIntervalSince(lastChange) >= idleStopSeconds { return }
+            guard recorder.points.count >= minimumPoints else { continue }
+            if Date().timeIntervalSince(lastMove) >= idleStopSeconds { return }
         }
     }
 

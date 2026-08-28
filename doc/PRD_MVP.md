@@ -24,7 +24,11 @@
 ## 2. MVP スコープ
 
 ### Must
-- GPS 記録(前景 + Live Activity。**Always Location は使わない** — 審査とバッテリーの割に合わない)
+- GPS 記録(前景。手動の開始/終了)
+- **走り出しの自動検知と自動記録**(2026-08-29 追加。当初は「Always Location は使わない — 審査とバッテリーの割に合わない」としていたが、
+  「開くのを忘れて記録し損ねる」が体験上いちばん惜しいので方針を変えた。**自動記録は既定オフ**にして、
+  オンにしたときだけ Always 権限 + Background Modes(location)を使う。判定は Core Motion の `.automotive` と
+  GPS 速度の持続の 2 系統で、Core Motion が使えない端末では速度だけで動く)
 - 距離・所要時間の算出
 - 走行時刻レンジ + 位置での写真自動抽出(Photos / PHAsset の creationDate・location)
 - 写真のルート上への自動配置

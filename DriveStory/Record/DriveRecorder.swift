@@ -24,6 +24,14 @@ final class DriveRecorder: ObservableObject {
     }
 
     let tracker = LocationTracker()
+    let detector = DriveDetector()
+
+    /// 自動記録。走り出しを勝手に捉えて記録を始め、止まったら締める。
+    /// Always 権限と常時 GPS が要るので既定は切ってある。
+    @Published private(set) var isAutoDetectEnabled = false
+
+    /// 自動で締めた記録。UI が拾って保存する。
+    @Published var finishedByDetector: DriveRecord?
 
     private var nextID = 0
     private var lastRecordTime: Date?
@@ -47,7 +55,45 @@ final class DriveRecorder: ObservableObject {
                 DispatchQueue.main.async { self?.record(location) }
             }
         }
+        tracker.onRawLocation = { [weak self] location in
+            guard let self else { return }
+            if Thread.isMainThread {
+                MainActor.assumeIsolated { self.detector.consume(location) }
+            } else {
+                DispatchQueue.main.async { self.detector.consume(location) }
+            }
+        }
+        detector.onStart = { [weak self] in
+            guard let self, !self.isRecording else { return }
+            self.start()
+        }
+        detector.onStop = { [weak self] in
+            guard let self, self.isRecording else { return }
+            self.finishedByDetector = self.stop()
+        }
         restoreInflight()
+    }
+
+    // MARK: - 自動記録
+
+    func setAutoDetect(_ enabled: Bool) {
+        isAutoDetectEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: "autoDetectEnabled")
+        if enabled {
+            tracker.enableBackground()
+            detector.enable()
+            detector.syncRecording(isRecording)
+        } else {
+            detector.disable()
+            tracker.disableBackground()
+            if !isRecording { tracker.stop() }
+        }
+    }
+
+    /// 起動時に前回の設定を復元する。
+    func restoreAutoDetect() {
+        guard UserDefaults.standard.bool(forKey: "autoDetectEnabled") else { return }
+        setAutoDetect(true)
     }
 
     // MARK: - セッション
@@ -64,13 +110,16 @@ final class DriveRecorder: ObservableObject {
         lastPersist = Date()
         tracker.resetDistance()
         tracker.start()
+        detector.syncRecording(true)
     }
 
     /// 記録を止めて `DriveRecord` にする。2 点未満なら記録として成立しないので nil。
     @discardableResult
     func stop() -> DriveRecord? {
         isRecording = false
-        tracker.stop()
+        detector.syncRecording(false)
+        // 自動記録中は次の走り出しを待つので位置取得を止めない。
+        if !isAutoDetectEnabled { tracker.stop() }
         defer { clearInflight() }
         guard let startedAt, points.count >= 2 else {
             hasRecoveredSession = false

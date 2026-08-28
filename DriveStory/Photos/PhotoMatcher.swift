@@ -2,6 +2,29 @@ import CoreLocation
 import Foundation
 import Photos
 
+/// 突き合わせに必要な情報だけを取り出したもの。
+///
+/// `PHAsset` を直接受けると、写真権限が無い環境ではアルゴリズムを一切検証できない。
+/// シミュレータでは `simctl privacy grant photos` が効かず notDetermined のままだった
+/// （iOS 26.0 / 18.6 の両方で実測。TCC を直接書いても変わらず）。
+/// PhotoKit を境界の向こうに置けば、判定そのものはどこでも確かめられる。
+struct PhotoCandidate {
+    var id: String
+    var creationDate: Date
+    var coordinate: CLLocationCoordinate2D?
+}
+
+extension PHAsset {
+    var candidate: PhotoCandidate? {
+        guard let creationDate else { return nil }
+        return PhotoCandidate(
+            id: localIdentifier,
+            creationDate: creationDate,
+            coordinate: location?.coordinate
+        )
+    }
+}
+
 /// 走行ログと写真を突き合わせる。純関数で、副作用は持たない。
 ///
 /// このアプリの一番の売りは「40 枚から選ぶ作業が消える」こと。
@@ -12,7 +35,12 @@ enum PhotoMatcher {
     /// ルートからこれ以上離れた写真は走行と無関係とみなす。
     static let maxDistanceFromRoute: CLLocationDistance = 300
 
+    /// 本番の入口。PHAsset を候補に写してから同じ判定に通す。
     static func match(record: DriveRecord, assets: [PHAsset]) -> [PhotoRef] {
+        match(record: record, candidates: assets.compactMap(\.candidate))
+    }
+
+    static func match(record: DriveRecord, candidates: [PhotoCandidate]) -> [PhotoRef] {
         let masked = RouteMask.masked(record.points, radius: record.maskedRadius)
         guard masked.count >= 2 else { return [] }
         let fractions = masked.cumulativeFractions
@@ -21,27 +49,27 @@ enum PhotoMatcher {
             end: record.endedAt.addingTimeInterval(timeMargin)
         )
 
-        return assets.compactMap { asset -> PhotoRef? in
-            guard let shotAt = asset.creationDate else { return nil }
+        return candidates.compactMap { candidate -> PhotoRef? in
+            let shotAt = candidate.creationDate
 
             guard window.contains(shotAt) else {
                 return PhotoRef(
-                    assetLocalIdentifier: asset.localIdentifier,
+                    assetLocalIdentifier: candidate.id,
                     creationDate: shotAt,
-                    coordinate: asset.location?.coordinate,
+                    coordinate: candidate.coordinate,
                     position: 0,
                     isIncluded: false,
                     rejectReason: "走行時刻レンジ外"
                 )
             }
 
-            if let coordinate = asset.location?.coordinate {
+            if let coordinate = candidate.coordinate {
                 // 自宅で撮った写真が出るのが一番まずい。マスク圏内は無条件で外す。
                 if RouteMask.isInsideMask(
                     coordinate, points: record.points, radius: record.maskedRadius
                 ) {
                     return PhotoRef(
-                        assetLocalIdentifier: asset.localIdentifier,
+                        assetLocalIdentifier: candidate.id,
                         creationDate: shotAt,
                         coordinate: coordinate,
                         position: 0,
@@ -63,7 +91,7 @@ enum PhotoMatcher {
 
                 guard bestDistance <= maxDistanceFromRoute else {
                     return PhotoRef(
-                        assetLocalIdentifier: asset.localIdentifier,
+                        assetLocalIdentifier: candidate.id,
                         creationDate: shotAt,
                         coordinate: coordinate,
                         position: 0,
@@ -73,7 +101,7 @@ enum PhotoMatcher {
                 }
 
                 return PhotoRef(
-                    assetLocalIdentifier: asset.localIdentifier,
+                    assetLocalIdentifier: candidate.id,
                     creationDate: shotAt,
                     coordinate: coordinate,
                     position: fractions[bestIndex],
@@ -85,7 +113,7 @@ enum PhotoMatcher {
             // 位置がない写真（スクショ・位置サービス off）は撮影時刻で救う。
             // 時刻は必ずあるので、ここで捨てると惜しい 1 枚を落とす。
             return PhotoRef(
-                assetLocalIdentifier: asset.localIdentifier,
+                assetLocalIdentifier: candidate.id,
                 creationDate: shotAt,
                 coordinate: nil,
                 position: positionByTime(shotAt, points: masked, fractions: fractions),

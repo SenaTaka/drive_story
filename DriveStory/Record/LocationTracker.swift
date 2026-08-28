@@ -44,6 +44,12 @@ final class LocationTracker: NSObject, ObservableObject {
 
     /// 精度フィルタを通った点。軌跡に載せてよいものだけが流れてくる。
     var onPoint: ((CLLocation) -> Void)?
+    /// 精度に関わらず届いた位置。運転の自動検知に使う（速度だけ見るので粗くてよい）。
+    var onRawLocation: ((CLLocation) -> Void)?
+
+    /// 画面を閉じても記録を続けるか。自動記録を使うときに立てる。
+    /// Always 権限がないと `allowsBackgroundLocationUpdates` は設定できない。
+    @Published private(set) var isBackgroundEnabled = false
 
     var quality: GPSQuality {
         guard isActive, let accuracy = horizontalAccuracyM else { return .unavailable }
@@ -84,6 +90,41 @@ final class LocationTracker: NSObject, ObservableObject {
         }
     }
 
+    /// 画面を閉じている間も記録を続けたいときに呼ぶ。
+    ///
+    /// PRD では当初 Always を使わない方針だったが、走り出しを自動で捉えるには
+    /// アプリを開いていない間も位置が要る（2026-08-29 に方針変更）。
+    /// 常時 GPS は電池を食うので、自動記録が ON のときだけ使う。
+    func enableBackground() {
+        switch manager.authorizationStatus {
+        case .notDetermined, .authorizedWhenInUse:
+            manager.requestAlwaysAuthorization()
+        case .denied, .restricted:
+            isDenied = true
+            return
+        default:
+            break
+        }
+        applyBackgroundMode()
+        // アプリが落とされても走り出しで起こしてもらうための保険。
+        manager.startMonitoringSignificantLocationChanges()
+        beginUpdates()
+    }
+
+    func disableBackground() {
+        isBackgroundEnabled = false
+        manager.allowsBackgroundLocationUpdates = false
+        manager.stopMonitoringSignificantLocationChanges()
+    }
+
+    private func applyBackgroundMode() {
+        guard manager.authorizationStatus == .authorizedAlways else { return }
+        manager.allowsBackgroundLocationUpdates = true
+        // 背景で位置を取っていることは利用者に見えていないといけない。
+        manager.showsBackgroundLocationIndicator = true
+        isBackgroundEnabled = true
+    }
+
     func stop() {
         manager.stopUpdatingLocation()
         isActive = false
@@ -102,6 +143,9 @@ final class LocationTracker: NSObject, ObservableObject {
     }
 
     private func apply(_ location: CLLocation) {
+        // 自動検知は速度しか見ないので、精度フィルタの前に渡す。
+        onRawLocation?(location)
+
         horizontalAccuracyM = location.horizontalAccuracy >= 0 ? location.horizontalAccuracy : nil
         speedKPH = location.speed >= 0 ? location.speed * 3.6 : nil
 
@@ -128,6 +172,7 @@ extension LocationTracker: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
+            applyBackgroundMode()
             if isActive || lastLocation == nil {
                 beginUpdates()
             }

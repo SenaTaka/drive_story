@@ -22,12 +22,20 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>走り出しを自動で見つけて記録するために、アプリを開いていない間も位置情報を使います。自動記録を切れば使いません。</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>走行中のルートを記録して、ドライブの共有画像を作るために使います。</string>
+	<key>NSMotionUsageDescription</key>
+	<string>車で移動し始めたことを見分けて、記録を自動で始めるために使います。</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>作成したドライブの1枚を、写真ライブラリへ保存するために使います。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ドライブ中に撮影した写真を自動で選び、共有画像に配置するために使います。</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations~iphone</key>

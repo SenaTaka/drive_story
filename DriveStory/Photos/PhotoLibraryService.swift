@@ -2,6 +2,12 @@ import CoreLocation
 import Photos
 import UIKit
 
+/// `requestImage` は複数回コールバックする。どれを返したかを覚えておく箱。
+private final class ImageRequestState: @unchecked Sendable {
+    var resumed = false
+    var latest: UIImage?
+}
+
 /// 写真ライブラリへの唯一の窓口。PhotoKit をここより外に漏らさない。
 enum PhotoLibraryService {
     @discardableResult
@@ -10,6 +16,18 @@ enum PhotoLibraryService {
             PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
                 continuation.resume(returning: status)
             }
+        }
+    }
+
+    /// 診断用。denied なのか notDetermined なのかで対処が変わる。
+    static var authorizationLabel: String {
+        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+        case .notDetermined: return "notDetermined"
+        case .restricted: return "restricted"
+        case .denied: return "denied"
+        case .authorized: return "authorized"
+        case .limited: return "limited"
+        @unknown default: return "unknown"
         }
     }
 
@@ -57,16 +75,21 @@ enum PhotoLibraryService {
         options.isNetworkAccessAllowed = true
         options.isSynchronous = false
 
+        // 低品質の速報が先に来ることがあるので完成版を待つが、
+        // 完成版が来ないケースもある。速報を握って最後に必ず返す。
         return await withCheckedContinuation { continuation in
-            var resumed = false
+            let state = ImageRequestState()
             PHImageManager.default().requestImage(
                 for: asset, targetSize: targetSize, contentMode: .aspectFill, options: options
             ) { image, info in
-                // 低品質の速報が先に来ることがある。完成版だけを受け取る。
                 let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
-                guard !isDegraded, !resumed else { return }
-                resumed = true
-                continuation.resume(returning: image)
+                let isFinished = !isDegraded
+                    || (info?[PHImageCancelledKey] as? Bool) == true
+                    || info?[PHImageErrorKey] != nil
+                state.latest = image ?? state.latest
+                guard isFinished, !state.resumed else { return }
+                state.resumed = true
+                continuation.resume(returning: state.latest)
             }
         }
     }

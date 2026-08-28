@@ -22,6 +22,10 @@ targets:
           - UIInterfaceOrientationPortrait
         NSLocationWhenInUseUsageDescription: 走行中のルートを記録して、ドライブの共有画像を作るために使います。
         NSPhotoLibraryUsageDescription: ドライブ中に撮影した写真を自動で選び、共有画像に配置するために使います。
+        NSLocationAlwaysAndWhenInUseUsageDescription: 走り出しを自動で見つけて記録するために、アプリを開いていない間も位置情報を使います。自動記録を切れば使いません。
+        NSMotionUsageDescription: 車で移動し始めたことを見分けて、記録を自動で始めるために使います。
+        UIBackgroundModes:
+          - location
         NSPhotoLibraryAddUsageDescription: 作成したドライブの1枚を、写真ライブラリへ保存するために使います。
         ITSAppUsesNonExemptEncryption: false
     settings:

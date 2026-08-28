@@ -12,9 +12,12 @@ struct RouteOutline {
     /// 経路長で正規化した累積位置。points と同じ個数。
     private let cumulative: [Double]
 
-    init(coordinates: [CLLocationCoordinate2D], tolerance: Double = 0.0015) {
+    init(coordinates: [CLLocationCoordinate2D], tolerance: Double? = nil) {
         let projected = RouteOutline.project(coordinates)
-        let simplified = RouteOutline.simplify(projected, tolerance: tolerance)
+        let simplified = RouteOutline.simplify(
+            projected,
+            tolerance: tolerance ?? RouteOutline.adaptiveTolerance(projected)
+        )
         let fitted = RouteOutline.fitToUnitBox(simplified)
         points = fitted
         cumulative = RouteOutline.cumulativeLengths(fitted)
@@ -41,6 +44,20 @@ struct RouteOutline {
 
     var start: CGPoint { points.first ?? .zero }
     var goal: CGPoint { points.last ?? .zero }
+
+    /// 簡略化の許容誤差。絶対値で固定すると短いドライブが棒になる。
+    ///
+    /// 4.7km の街乗りを 0.0015 度(約 165m)で間引いたら 3 点まで潰れて、
+    /// ルートが「く」の字にしかならなかった(2026-08-29 実測)。
+    /// 経路の広がりに対する比で決めつつ、長距離では従来値を上限にする
+    /// (上限を外すと `SampleDrives` の決定稿ビジュアルが変わってしまう)。
+    static func adaptiveTolerance(_ projected: [CGPoint]) -> Double {
+        guard projected.count > 1 else { return 0 }
+        let xs = projected.map(\.x), ys = projected.map(\.y)
+        let spanX = (xs.max() ?? 0) - (xs.min() ?? 0)
+        let spanY = (ys.max() ?? 0) - (ys.min() ?? 0)
+        return min(max(spanX, spanY) * 0.0125, 0.0015)
+    }
 
     // MARK: - 変換
 

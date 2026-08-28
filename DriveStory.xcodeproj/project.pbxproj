@@ -28,6 +28,7 @@
 		AD046F56CF2B8CB968AB0EB3 /* DriveStoryApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462D8AF60725E835D1B67584 /* DriveStoryApp.swift */; };
 		AD96109D3595A385ADA8E768 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C19E680C67E06F751F03D /* RootView.swift */; };
 		B4D8E57007F984273B2E2E43 /* RouteMask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A838069626A8E9833FFCFB /* RouteMask.swift */; };
+		BC33E16AA7F1C08215297EB3 /* DriveDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4154FD721A3AA8C1B22773C2 /* DriveDetector.swift */; };
 		C54529A40F7888633B7998E4 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF41C6D52751F2ACD9D8C76 /* LocationTracker.swift */; };
 		C95E04F123D43806D9C5A6C6 /* DriveMapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321734212B74B98F5678DFE9 /* DriveMapScreen.swift */; };
 		D029604BA50C2F0EDD1EBD38 /* StoryPreviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865440CEB61D714C0EF49512 /* StoryPreviewScreen.swift */; };
@@ -51,6 +52,7 @@
 		321734212B74B98F5678DFE9 /* DriveMapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveMapScreen.swift; sourceTree = "<group>"; };
 		35729D2271D59290EF61718B /* StoryTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTheme.swift; sourceTree = "<group>"; };
 		37A838069626A8E9833FFCFB /* RouteMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMask.swift; sourceTree = "<group>"; };
+		4154FD721A3AA8C1B22773C2 /* DriveDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveDetector.swift; sourceTree = "<group>"; };
 		462D8AF60725E835D1B67584 /* DriveStoryApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveStoryApp.swift; sourceTree = "<group>"; };
 		53D2E9FE2408F85CEE664CCD /* PhotoSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSaver.swift; sourceTree = "<group>"; };
 		5F144472AFA39099808FF03C /* PlaceNamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceNamer.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 		96BDA815FB889D88F441B532 /* Record */ = {
 			isa = PBXGroup;
 			children = (
+				4154FD721A3AA8C1B22773C2 /* DriveDetector.swift */,
 				01DDFB301FC3E31E28376FA3 /* DriveRecorder.swift */,
 				EBF41C6D52751F2ACD9D8C76 /* LocationTracker.swift */,
 				37A838069626A8E9833FFCFB /* RouteMask.swift */,
@@ -283,6 +286,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC33E16AA7F1C08215297EB3 /* DriveDetector.swift in Sources */,
 				C95E04F123D43806D9C5A6C6 /* DriveMapScreen.swift in Sources */,
 				3A3566AFD209D092058089AE /* DriveRecord.swift in Sources */,
 				1D3C6A0744A55EA78E9640AC /* DriveRecordStore.swift in Sources */,
